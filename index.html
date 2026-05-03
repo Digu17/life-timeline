@@ -18,24 +18,26 @@
 body {
   background: linear-gradient(135deg, #0f172a, #1e293b);
   color: white;
-  text-align: center;
-  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
-/* Container */
+/* Main Card */
 .container {
+  width: 95%;
   max-width: 500px;
-  margin: auto;
   background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
   padding: 25px;
   border-radius: 20px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
   animation: fadeIn 1s ease;
 }
 
 h1 {
-  font-size: 24px;
+  text-align: center;
   margin-bottom: 15px;
 }
 
@@ -52,8 +54,8 @@ input {
 /* Button */
 button {
   margin-top: 15px;
-  padding: 12px;
   width: 100%;
+  padding: 12px;
   border: none;
   border-radius: 10px;
   background: linear-gradient(45deg, #6366f1, #8b5cf6);
@@ -65,7 +67,7 @@ button {
 
 button:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 15px #8b5cf6;
+  box-shadow: 0 0 20px #8b5cf6;
 }
 
 /* Cards */
@@ -76,11 +78,11 @@ button:hover {
 }
 
 .card {
+  width: 32%;
   background: rgba(255,255,255,0.08);
   padding: 10px;
   border-radius: 10px;
-  width: 30%;
-  font-size: 14px;
+  text-align: center;
   animation: slideUp 0.5s ease;
 }
 
@@ -94,9 +96,24 @@ button:hover {
 
 .progress-fill {
   height: 10px;
-  background: linear-gradient(90deg, #22c55e, #4ade80);
   width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
   transition: width 1s ease;
+}
+
+.progress-text {
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Viral text */
+.highlight {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #facc15;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
 }
 
 /* Grid */
@@ -122,15 +139,21 @@ button:hover {
   background: #334155;
 }
 
-/* Animation */
+/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px);}
-  to { opacity: 1; transform: translateY(0);}
+  from {opacity:0; transform: translateY(20px);}
+  to {opacity:1; transform: translateY(0);}
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px);}
-  to { opacity: 1; transform: translateY(0);}
+  from {opacity:0; transform: translateY(20px);}
+  to {opacity:1; transform: translateY(0);}
+}
+
+@keyframes pulse {
+  0% {opacity: 1;}
+  50% {opacity: 0.5;}
+  100% {opacity: 1;}
 }
 </style>
 </head>
@@ -138,10 +161,10 @@ button:hover {
 <body>
 
 <div class="container">
-  <h1>⏳ Your Life Timeline</h1>
+  <h1>⏳ Life Timeline</h1>
 
   <input type="date" id="dob">
-  <button onclick="calculate()">Calculate</button>
+  <button onclick="calculate()">See Your Life</button>
 
   <div class="cards" id="cards"></div>
 
@@ -149,7 +172,8 @@ button:hover {
     <div class="progress-fill" id="progressFill"></div>
   </div>
 
-  <p id="progressText" style="margin-top:10px;"></p>
+  <div class="progress-text" id="progressText"></div>
+  <div class="highlight" id="highlight"></div>
 
   <div class="grid" id="grid"></div>
 </div>
@@ -170,19 +194,21 @@ function calculate() {
   const lifeExpectancy = 75 * 365;
   const percent = ((days / lifeExpectancy) * 100).toFixed(1);
 
-  // Cards
   document.getElementById("cards").innerHTML = `
     <div class="card">Days<br><b>${days}</b></div>
     <div class="card">Weeks<br><b>${weeks}</b></div>
     <div class="card">Age<br><b>${years}</b></div>
   `;
 
-  // Progress
   document.getElementById("progressFill").style.width = percent + "%";
   document.getElementById("progressText").innerText =
     `You have lived ${percent}% of your life`;
 
-  // Grid
+  document.getElementById("highlight").innerText =
+    percent < 50 
+    ? "😳 You have a lot of life left — use it wisely!"
+    : "⚡ Time is running — make it count!";
+
   const totalWeeks = 75 * 52;
   let gridHTML = "";
 
