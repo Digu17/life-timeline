@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Life Timeline Pro</title>
+<title>Life Timeline</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <style>
 * {
@@ -21,10 +23,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
-/* Container */
 .container {
   width: 95%;
   max-width: 420px;
@@ -35,33 +36,27 @@ body {
   text-align: center;
 }
 
-/* Progress Steps */
-.progress-steps {
+/* Progress */
+.progress {
   display: flex;
-  justify-content: space-between;
+  gap: 5px;
   margin-bottom: 15px;
 }
 
-.step-dot {
-  width: 30%;
+.progress div {
+  flex: 1;
   height: 6px;
   background: #334155;
   border-radius: 10px;
 }
 
-.step-dot.active {
+.progress .active {
   background: linear-gradient(90deg, #22c55e, #4ade80);
 }
 
 /* Steps */
-.step {
-  display: none;
-  animation: fade 0.4s ease;
-}
-
-.active {
-  display: block;
-}
+.step { display: none; }
+.step.active { display: block; }
 
 /* Inputs */
 input {
@@ -74,7 +69,7 @@ input {
 
 /* Buttons */
 button {
-  margin-top: 15px;
+  margin-top: 12px;
   width: 100%;
   padding: 12px;
   border-radius: 10px;
@@ -84,24 +79,35 @@ button {
   cursor: pointer;
 }
 
-.back-btn {
-  background: #334155;
-}
+.back { background: #334155; }
 
 /* Result */
 .result {
   margin-top: 20px;
-  line-height: 1.6;
+  line-height: 1.7;
+  animation: fade 0.6s ease;
 }
 
-.highlight {
-  color: #facc15;
+.highlight { color: #facc15; font-weight: bold; }
+.danger { color: #ef4444; font-weight: bold; }
+
+/* CTA */
+.cta {
+  margin-top: 15px;
   font-weight: bold;
+  color: #22c55e;
 }
 
-.danger {
-  color: #ef4444;
-  font-weight: bold;
+/* Actions */
+.actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.actions button {
+  flex: 1;
+  background: #22c55e;
 }
 
 /* Grid */
@@ -122,7 +128,6 @@ button {
 .filled { background: #22c55e; }
 .empty { background: #334155; }
 
-/* Animation */
 @keyframes fade {
   from {opacity:0; transform: translateY(20px);}
   to {opacity:1; transform: translateY(0);}
@@ -132,131 +137,140 @@ button {
 
 <body>
 
-<div class="container">
+<div class="container" id="capture">
 
-  <h2>⏳ Life Timeline</h2>
-  <p style="opacity:0.7;">See your life in reality</p>
+<h2>😳 See how much of your life is already gone</h2>
+<p style="opacity:0.7;">Enter your birth date and see your life in weeks</p>
 
-  <!-- Progress -->
-  <div class="progress-steps">
-    <div class="step-dot active" id="dot1"></div>
-    <div class="step-dot" id="dot2"></div>
-    <div class="step-dot" id="dot3"></div>
+<!-- Progress -->
+<div class="progress">
+  <div id="p1" class="active"></div>
+  <div id="p2"></div>
+  <div id="p3"></div>
+</div>
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+  <input type="date" id="dob">
+  <button onclick="goStep2()">Next</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+  <input type="number" id="phone" placeholder="Phone usage (optional)">
+  
+  <button onclick="calculate()">See My Life</button>
+  <button class="back" onclick="back1()">⬅ Back</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+  <div class="result" id="result"></div>
+
+  <div class="cta">⚡ Start using your time wisely</div>
+
+  <div class="actions">
+    <button onclick="download()">📸 Save</button>
+    <button onclick="share()">📤 Share</button>
   </div>
 
-  <!-- STEP 1 -->
-  <div class="step active" id="step1">
-    <input type="date" id="dob">
-    <button onclick="goStep2()">Next</button>
-  </div>
+  <button class="back" onclick="back2()">⬅ Edit</button>
 
-  <!-- STEP 2 -->
-  <div class="step" id="step2">
-    <input type="number" id="phone" placeholder="Phone usage (optional)">
-    
-    <button onclick="calculate()">See My Life</button>
-    <button class="back-btn" onclick="backToStep1()">⬅ Back</button>
-  </div>
-
-  <!-- STEP 3 -->
-  <div class="step" id="step3">
-    <div class="result" id="result"></div>
-
-    <button class="back-btn" onclick="backToStep2()">⬅ Edit</button>
-
-    <div class="grid" id="grid"></div>
-  </div>
+  <div class="grid" id="grid"></div>
+</div>
 
 </div>
 
 <script>
 
-// Step 1 → Step 2
+// Enter support
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    if (step1.classList.contains("active")) goStep2();
+    else if (step2.classList.contains("active")) calculate();
+  }
+});
+
+function showStep(n) {
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  document.getElementById("step"+n).classList.add("active");
+
+  document.querySelectorAll(".progress div").forEach(p => p.classList.remove("active"));
+  for (let i=1;i<=n;i++) document.getElementById("p"+i).classList.add("active");
+}
+
 function goStep2() {
-  const dob = document.getElementById("dob").value;
-  if (!dob) return alert("Enter DOB");
-
-  document.getElementById("step1").classList.remove("active");
-  document.getElementById("step2").classList.add("active");
-
-  updateDots(2);
+  if (!dob.value) return alert("Enter DOB");
+  showStep(2);
 }
 
-// Back to Step 1
-function backToStep1() {
-  document.getElementById("step2").classList.remove("active");
-  document.getElementById("step1").classList.add("active");
+function back1(){ showStep(1); }
+function back2(){ showStep(2); }
 
-  updateDots(1);
-}
-
-// Back to Step 2
-function backToStep2() {
-  document.getElementById("step3").classList.remove("active");
-  document.getElementById("step2").classList.add("active");
-
-  updateDots(2);
-}
-
-// Calculate
 function calculate() {
-  const dobValue = document.getElementById("dob").value;
+  const dobValue = dob.value;
   const phone = parseFloat(document.getElementById("phone").value) || 0;
 
-  const dob = new Date(dobValue);
+  const dobDate = new Date(dobValue);
   const today = new Date();
 
-  const diff = today - dob;
+  const diff = today - dobDate;
   const days = Math.floor(diff / (1000*60*60*24));
-  const weeks = Math.floor(days / 7);
-  const years = (days / 365).toFixed(1);
+  const weeks = Math.floor(days/7);
+  const years = (days/365).toFixed(1);
 
-  const life = 75 * 365;
-  const percent = ((days / life) * 100).toFixed(1);
-  const left = Math.max(0, life - days);
+  const life = 75*365;
+  const percent = ((days/life)*100).toFixed(1);
+  const left = Math.max(0, life-days);
 
-  const phoneYears = ((phone * 365 * 75) / 24 / 365).toFixed(1);
+  const phoneYears = ((phone*365*75)/24/365).toFixed(1);
 
-  let phase = "";
-  if (years < 18) phase = "🎓 Learning";
-  else if (years < 30) phase = "🚀 Growth";
-  else if (years < 50) phase = "🏗 Building";
-  else phase = "👑 Legacy";
+  let phase="";
+  if(years<18) phase="🎓 Learning";
+  else if(years<30) phase="🚀 Growth";
+  else if(years<50) phase="🏗 Building";
+  else phase="👑 Legacy";
 
-  document.getElementById("step2").classList.remove("active");
-  document.getElementById("step3").classList.add("active");
-
-  updateDots(3);
+  showStep(3);
 
   document.getElementById("result").innerHTML = `
-    🎬 Life: ${percent}% completed <br>
+    🎬 Your life is <b>${percent}% completed</b><br>
     <span class="highlight">🌅 ${left.toLocaleString()} mornings left</span><br>
-    <span class="danger">⏳ ${left.toLocaleString()} days left</span><br>
-    ⚡ ${phase} phase <br>
-    📱 ${phoneYears} years lost on phone
+    <span class="danger">⏳ ${left.toLocaleString()} days left</span><br><br>
+    
+    📱 If you continue this habit:<br>
+    😳 You will lose <b>${phoneYears} years</b> of your life<br><br>
+
+    ⚡ You are in <b>${phase}</b> phase
   `;
 
-  // Grid
-  let gridHTML = "";
-  for (let i = 0; i < 75*52; i++) {
-    gridHTML += `<div class="box ${i < weeks ? 'filled' : 'empty'}"></div>`;
+  let gridHTML="";
+  for(let i=0;i<75*52;i++){
+    gridHTML+=`<div class="box ${i<weeks?'filled':'empty'}"></div>`;
   }
 
-  document.getElementById("grid").innerHTML = gridHTML;
+  grid.innerHTML=gridHTML;
 
-  document.querySelectorAll(".box").forEach((el, i) => {
-    setTimeout(() => el.style.opacity = "1", i);
+  document.querySelectorAll(".box").forEach((el,i)=>{
+    setTimeout(()=>el.style.opacity="1",i);
   });
 }
 
-// Progress dots update
-function updateDots(step) {
-  document.querySelectorAll(".step-dot").forEach(d => d.classList.remove("active"));
-  for (let i = 1; i <= step; i++) {
-    document.getElementById("dot" + i).classList.add("active");
-  }
+// Save image
+function download(){
+  html2canvas(document.getElementById("capture")).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="life.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
 }
 
+// Share
+function share(){
+  const text="Check your life timeline 👉 "+window.location.href;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
 </script>
 
 </body>
