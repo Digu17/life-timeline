@@ -21,31 +21,60 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
 }
 
+/* Container */
 .container {
   width: 95%;
-  max-width: 500px;
+  max-width: 420px;
   background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(20px);
   padding: 25px;
   border-radius: 20px;
+  backdrop-filter: blur(20px);
+  text-align: center;
 }
 
-h1 { text-align: center; }
-.sub { text-align: center; opacity: 0.7; font-size: 14px; }
+/* Progress Steps */
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
 
+.step-dot {
+  width: 30%;
+  height: 6px;
+  background: #334155;
+  border-radius: 10px;
+}
+
+.step-dot.active {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+/* Steps */
+.step {
+  display: none;
+  animation: fade 0.4s ease;
+}
+
+.active {
+  display: block;
+}
+
+/* Inputs */
 input {
   width: 100%;
   padding: 12px;
   border-radius: 10px;
   border: none;
-  margin-top: 12px;
+  margin-top: 15px;
 }
 
+/* Buttons */
 button {
-  margin-top: 12px;
+  margin-top: 15px;
   width: 100%;
   padding: 12px;
   border-radius: 10px;
@@ -55,42 +84,27 @@ button {
   cursor: pointer;
 }
 
-.cards {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-
-.card {
-  width: 32%;
-  background: rgba(255,255,255,0.08);
-  padding: 10px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.progress-bar {
-  margin-top: 15px;
+.back-btn {
   background: #334155;
-  border-radius: 10px;
-  overflow: hidden;
 }
 
-.progress-fill {
-  height: 10px;
-  width: 0%;
-  background: linear-gradient(90deg, #22c55e, #4ade80);
-  transition: 1s;
+/* Result */
+.result {
+  margin-top: 20px;
+  line-height: 1.6;
 }
 
-.text, .highlight, .extra {
-  margin-top: 10px;
-  text-align: center;
+.highlight {
+  color: #facc15;
+  font-weight: bold;
 }
 
-.highlight { color: #facc15; font-weight: bold; }
-.danger { color: #ef4444; font-weight: bold; }
+.danger {
+  color: #ef4444;
+  font-weight: bold;
+}
 
+/* Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(50, 5px);
@@ -108,8 +122,10 @@ button {
 .filled { background: #22c55e; }
 .empty { background: #334155; }
 
-.hidden {
-  display: none;
+/* Animation */
+@keyframes fade {
+  from {opacity:0; transform: translateY(20px);}
+  to {opacity:1; transform: translateY(0);}
 }
 </style>
 </head>
@@ -117,106 +133,128 @@ button {
 <body>
 
 <div class="container">
-  <h1>⏳ Your Life Timeline</h1>
-  <p class="sub">Reality check of your life</p>
 
-  <!-- FORM (IMPORTANT) -->
-  <form onsubmit="calculate(event)">
-    
-    <input type="date" id="dob" onchange="showPhone()">
+  <h2>⏳ Life Timeline</h2>
+  <p style="opacity:0.7;">See your life in reality</p>
 
-    <!-- Hidden initially -->
-    <input type="number" id="phone" class="hidden"
-      min="0" max="24" step="0.5"
-      placeholder="Daily phone usage (hours e.g. 4)">
-
-    <button type="submit">See My Life</button>
-
-  </form>
-
-  <div class="cards" id="cards"></div>
-
-  <div class="progress-bar">
-    <div class="progress-fill" id="progressFill"></div>
+  <!-- Progress -->
+  <div class="progress-steps">
+    <div class="step-dot active" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
   </div>
 
-  <div class="text" id="progressText"></div>
-  <div class="highlight" id="highlight"></div>
-  <div class="extra" id="extra"></div>
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <input type="date" id="dob">
+    <button onclick="goStep2()">Next</button>
+  </div>
 
-  <div class="grid" id="grid"></div>
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <input type="number" id="phone" placeholder="Phone usage (optional)">
+    
+    <button onclick="calculate()">See My Life</button>
+    <button class="back-btn" onclick="backToStep1()">⬅ Back</button>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="result" id="result"></div>
+
+    <button class="back-btn" onclick="backToStep2()">⬅ Edit</button>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
 </div>
 
 <script>
 
-// ✅ Show phone field after DOB
-function showPhone() {
-  document.getElementById("phone").classList.remove("hidden");
+// Step 1 → Step 2
+function goStep2() {
+  const dob = document.getElementById("dob").value;
+  if (!dob) return alert("Enter DOB");
+
+  document.getElementById("step1").classList.remove("active");
+  document.getElementById("step2").classList.add("active");
+
+  updateDots(2);
 }
 
-// ✅ Enter press + button both work
-function calculate(e) {
-  e.preventDefault();
+// Back to Step 1
+function backToStep1() {
+  document.getElementById("step2").classList.remove("active");
+  document.getElementById("step1").classList.add("active");
 
+  updateDots(1);
+}
+
+// Back to Step 2
+function backToStep2() {
+  document.getElementById("step3").classList.remove("active");
+  document.getElementById("step2").classList.add("active");
+
+  updateDots(2);
+}
+
+// Calculate
+function calculate() {
   const dobValue = document.getElementById("dob").value;
   const phone = parseFloat(document.getElementById("phone").value) || 0;
-
-  if (!dobValue) return alert("Enter DOB");
 
   const dob = new Date(dobValue);
   const today = new Date();
 
-  const diffTime = today - dob;
-  const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diff = today - dob;
+  const days = Math.floor(diff / (1000*60*60*24));
   const weeks = Math.floor(days / 7);
   const years = (days / 365).toFixed(1);
 
-  const lifeExpectancy = 75 * 365;
-  const percent = ((days / lifeExpectancy) * 100).toFixed(1);
-  const daysLeft = Math.max(0, Math.floor(lifeExpectancy - days));
+  const life = 75 * 365;
+  const percent = ((days / life) * 100).toFixed(1);
+  const left = Math.max(0, life - days);
 
   const phoneYears = ((phone * 365 * 75) / 24 / 365).toFixed(1);
 
   let phase = "";
-  if (years < 18) phase = "🎓 Learning Phase";
-  else if (years < 30) phase = "🚀 Growth Phase";
-  else if (years < 50) phase = "🏗 Building Phase";
-  else phase = "👑 Legacy Phase";
+  if (years < 18) phase = "🎓 Learning";
+  else if (years < 30) phase = "🚀 Growth";
+  else if (years < 50) phase = "🏗 Building";
+  else phase = "👑 Legacy";
 
-  document.getElementById("cards").innerHTML = `
-    <div class="card">Days<br><b>${days}</b></div>
-    <div class="card">Weeks<br><b>${weeks}</b></div>
-    <div class="card">Age<br><b>${years}</b></div>
+  document.getElementById("step2").classList.remove("active");
+  document.getElementById("step3").classList.add("active");
+
+  updateDots(3);
+
+  document.getElementById("result").innerHTML = `
+    🎬 Life: ${percent}% completed <br>
+    <span class="highlight">🌅 ${left.toLocaleString()} mornings left</span><br>
+    <span class="danger">⏳ ${left.toLocaleString()} days left</span><br>
+    ⚡ ${phase} phase <br>
+    📱 ${phoneYears} years lost on phone
   `;
 
-  document.getElementById("progressFill").style.width = percent + "%";
-
-  document.getElementById("progressText").innerText =
-    `🎬 Life completed: ${percent}%`;
-
-  document.getElementById("highlight").innerText =
-    `🌅 ${daysLeft.toLocaleString()} mornings left`;
-
-  document.getElementById("extra").innerHTML = `
-    ⏳ <span class="danger">${daysLeft.toLocaleString()} days left</span><br>
-    ⚡ ${phase}<br>
-    📱 ~${phoneYears} years lost on phone 😳
-  `;
-
-  const totalWeeks = 75 * 52;
+  // Grid
   let gridHTML = "";
-
-  for (let i = 0; i < totalWeeks; i++) {
+  for (let i = 0; i < 75*52; i++) {
     gridHTML += `<div class="box ${i < weeks ? 'filled' : 'empty'}"></div>`;
   }
 
   document.getElementById("grid").innerHTML = gridHTML;
 
   document.querySelectorAll(".box").forEach((el, i) => {
-    setTimeout(() => {
-      el.style.opacity = "1";
-    }, i * 1);
+    setTimeout(() => el.style.opacity = "1", i);
   });
+}
+
+// Progress dots update
+function updateDots(step) {
+  document.querySelectorAll(".step-dot").forEach(d => d.classList.remove("active"));
+  for (let i = 1; i <= step; i++) {
+    document.getElementById("dot" + i).classList.add("active");
+  }
 }
 
 </script>
